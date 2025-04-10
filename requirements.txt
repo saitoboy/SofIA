@@ -6,4 +6,6 @@ google-auth
 google-auth-httplib2
 google-auth-oauthlib
 tabulate
-langchain[ollama]
+langchain
+requests
+python-dotenv

@@ -7,21 +7,17 @@ from app.models.context_loader import load_context_from_csv
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-def process_with_gemini(file_path: str):
+def ask_gemini(context: str, question: str) -> str:
     """
-    Processa o contexto do CSV e envia para a API Gemini.
+    Envia uma pergunta para a API Gemini com base no contexto fornecido.
     
     Args:
-        file_path (str): Caminho completo do arquivo CSV.
+        context (str): O contexto a ser enviado para a API.
+        question (str): A pergunta do usuário.
+    
+    Returns:
+        str: A resposta da API Gemini.
     """
-    print("🚀 Iniciando integração com a API Gemini...")  # Log amigável
-    
-    # Carrega o contexto do CSV
-    context = "Cod_IBGE: 69325.0, Municipio: São Paulo\nCod_IBGE: 256533.0, Municipio: Rio de Janeiro"
-    
-    print("📜 Contexto carregado para a API Gemini:")
-    print(context[:500])  # Exibe os primeiros 500 caracteres do contexto
-    
     # Configura a URL e o cabeçalho da API Gemini
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={os.getenv('GEMINI_API_KEY')}"
     headers = {
@@ -38,8 +34,7 @@ def process_with_gemini(file_path: str):
                             "Você é Sofia, uma assistente virtual inteligente criada para ajudar os usuários "
                             "a entenderem dados sobre concessões de rodovias no Brasil. Você é educada, clara e objetiva.\n\n"
                             f"Com base no seguinte contexto:\n\n{context}\n\n"
-                            "Responda à seguinte pergunta:\n\n"
-                            "Quem é vc?"
+                            f"Responda à seguinte pergunta:\n\n{question}"
                         )
                     }
                 ]
@@ -55,16 +50,39 @@ def process_with_gemini(file_path: str):
     if response.status_code == 200:
         print("✅ Resposta recebida com sucesso!")
         result = response.json()
-        print(result)  # Exibe a resposta completa para análise
-        
         # Acessa o texto da resposta no campo correto
         output = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "Sem resposta")
-        
-        print("💡 Resposta da API Gemini:")
-        print(output)
+        return output
     else:
         print(f"❌ Erro ao chamar a API Gemini: {response.status_code}")
         print(response.text)
+        return "Erro ao obter resposta da API."
+
+def process_with_gemini(file_path: str):
+    """
+    Processa o contexto do CSV e permite que o usuário faça perguntas dinâmicas.
+    
+    Args:
+        file_path (str): Caminho completo do arquivo CSV.
+    """
+    print("🚀 Iniciando integração com a API Gemini...")  # Log amigável
+    
+    # Carrega o contexto do CSV
+    context = load_context_from_csv(file_path, for_langchain=True)
+    print("📜 Contexto carregado para a API Gemini:")
+    print(context[:500])  # Exibe os primeiros 500 caracteres do contexto
+    
+    while True:
+        # Pergunta do usuário
+        question = input("❓ Faça sua pergunta (ou digite 'sair' para encerrar): ")
+        if question.lower() == "sair":
+            print("👋 Encerrando o programa. Até mais!")
+            break
+        
+        # Envia a pergunta para a API Gemini
+        response = ask_gemini(context, question)
+        print("💡 Resposta da Sofia:")
+        print(response)
 
 # Teste a integração
 if __name__ == "__main__":

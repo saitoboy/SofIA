@@ -2,6 +2,7 @@ import pandas as pd
 from app.utils.file_reader import read_csv
 from PyPDF2 import PdfReader
 import os
+from tabulate import tabulate  # Certifique-se de que o tabulate está instalado
 
 def load_context_from_csv(file_path: str, for_langchain: bool = False) -> str:
     """
@@ -16,8 +17,8 @@ def load_context_from_csv(file_path: str, for_langchain: bool = False) -> str:
     """
     try:
         print("📂 Lendo o arquivo CSV...")  # Log amigável
-        # Lê o arquivo CSV usando o file_reader
-        data = read_csv(file_path)
+        # Lê o arquivo CSV ignorando linhas defeituosas
+        data = pd.read_csv(file_path, encoding="latin1", on_bad_lines='skip')  # Ignora linhas com erros
         
         print("✅ Arquivo CSV lido com sucesso!")  # Log amigável
         
@@ -30,11 +31,13 @@ def load_context_from_csv(file_path: str, for_langchain: bool = False) -> str:
         else:
             print("📊 Formatando os dados em formato de tabela...")  # Log amigável
             # Usa tabulate para formatar o DataFrame como uma tabela
-            from tabulate import tabulate
             context = tabulate(data, headers="keys", tablefmt="grid")
         
         print("🎉 Contexto formatado com sucesso!")  # Log amigável
         return context
+    except UnicodeDecodeError as e:
+        print(f"❌ Erro de codificação ao carregar o CSV: {e}")  # Log amigável
+        raise ValueError(f"Erro de codificação ao carregar o CSV: {e}")
     except Exception as e:
         print(f"❌ Erro ao carregar o contexto do CSV: {e}")  # Log amigável
         raise ValueError(f"Erro ao carregar o contexto do CSV: {e}")

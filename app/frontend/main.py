@@ -18,20 +18,40 @@ if "messages" not in st.session_state:
 with st.sidebar:
     st.image(
         "https://guilhermesaito.com.br/wp-content/uploads/2025/04/sofia_Prancheta-1-copia-4.png",
-        use_container_width=True)
+        use_container_width=True
+    )
     st.title("A assistente perfeita para cada time!")
     st.markdown("### Configurações")
     
     # Carrega automaticamente o PDF institucional
-    context = None
+    pdf_context = None
+    csv_context = None
     try:
-        context = load_default_pdf_context()
+        pdf_context = load_default_pdf_context()
         st.sidebar.success("Contexto do PDF institucional carregado com sucesso!")
     except FileNotFoundError as e:
-        st.sidebar.warning(f"Arquivo não encontrado: {e}")
-        st.sidebar.info("Certifique-se de que o arquivo 'INSTITUCIONAL HOUER_2024 (OUT).pdf' está localizado em 'd:\\SofIA\\app\\data'.")
+        st.sidebar.warning(f"Arquivo PDF não encontrado: {e}")
     except Exception as e:
         st.sidebar.error(f"Erro ao carregar o contexto do PDF: {e}")
+    
+    # Carrega automaticamente os dados do CSV
+    try:
+        csv_context = load_context_from_csv("d:\\SofIA\\app\\data\\dados.csv")  # Substitua pelo caminho correto do CSV
+        st.sidebar.success("Contexto dos dados CSV carregado com sucesso!")
+    except FileNotFoundError as e:
+        st.sidebar.warning(f"Arquivo CSV não encontrado: {e}")
+    except Exception as e:
+        st.sidebar.error(f"Erro ao carregar o contexto do CSV: {e}")
+
+    # Combina os contextos (se ambos forem carregados)
+    if pdf_context and csv_context:
+        combined_context = f"{pdf_context}\n\n{csv_context}"
+    elif pdf_context:
+        combined_context = pdf_context
+    elif csv_context:
+        combined_context = csv_context
+    else:
+        combined_context = None
 
 # TÍTULO PRINCIPAL
 st.title("💬 Sofia - Assistente Virtual")
@@ -53,7 +73,6 @@ def render_message(message, role):
                 margin: 5px 0; text-align: {align}; max-width: 75%;
                 float: {align}; clear: both;'>
         {escaped_message}
-    </div>
     """
     st.markdown(html_code, unsafe_allow_html=True)
 
@@ -62,7 +81,7 @@ for msg in st.session_state.messages:
     render_message(msg["content"], msg["role"])
 
 # Entrada do usuário (campo de texto)
-if context:
+if combined_context:
     prompt = st.chat_input("Escreva sua mensagem...")
 
     if prompt:
@@ -73,10 +92,10 @@ if context:
         # Geração/resposta do assistente usando a API Gemini
         with st.spinner("Sofia está pensando..."):
             try:
-                response = ask_gemini(context, prompt)
+                response = ask_gemini(combined_context, prompt)
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 render_message(response, "assistant")
             except Exception as e:
                 st.error(f"Erro ao processar a pergunta: {e}")
 else:
-    st.error("O contexto não foi carregado. Verifique o arquivo PDF institucional.")
+    st.error("Nenhum contexto foi carregado. Verifique os arquivos PDF e CSV.")

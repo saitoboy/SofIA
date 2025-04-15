@@ -9,3 +9,5 @@ tabulate
 langchain
 requests
 python-dotenv
+streamlit
+PyPDF2

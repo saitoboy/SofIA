@@ -1,5 +1,7 @@
 import pandas as pd
 from app.utils.file_reader import read_csv
+from PyPDF2 import PdfReader
+import os
 
 def load_context_from_csv(file_path: str, for_langchain: bool = False) -> str:
     """
@@ -36,3 +38,41 @@ def load_context_from_csv(file_path: str, for_langchain: bool = False) -> str:
     except Exception as e:
         print(f"❌ Erro ao carregar o contexto do CSV: {e}")  # Log amigável
         raise ValueError(f"Erro ao carregar o contexto do CSV: {e}")
+
+def load_context_from_pdf(file_path: str) -> str:
+    """
+    Extrai texto de um arquivo PDF.
+
+    Args:
+        file_path (str): Caminho completo do arquivo PDF.
+
+    Returns:
+        str: Texto extraído do PDF.
+    """
+    try:
+        reader = PdfReader(file_path)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        return text
+    except Exception as e:
+        raise ValueError(f"Erro ao ler o PDF: {e}")
+
+def load_default_pdf_context(data_folder: str = r"d:\SofIA\app\data") -> str:
+    """
+    Verifica se o arquivo PDF padrão existe na pasta de dados e carrega seu conteúdo.
+
+    Args:
+        data_folder (str): Caminho para a pasta de dados.
+
+    Returns:
+        str: Texto extraído do PDF, ou uma mensagem de erro se o arquivo não for encontrado.
+    """
+    pdf_file = os.path.join(data_folder, "institucional.pdf")
+    print(f"🔍 Verificando o arquivo PDF no caminho: {pdf_file}")  # Log para depuração
+    if os.path.exists(pdf_file):
+        print(f"📂 Arquivo PDF encontrado: {pdf_file}")
+        return load_context_from_pdf(pdf_file)
+    else:
+        print(f"❌ Arquivo PDF não encontrado no caminho: {pdf_file}")  # Log para depuração
+        raise FileNotFoundError(f"Arquivo PDF institucional não encontrado em {data_folder}.")

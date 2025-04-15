@@ -16,10 +16,10 @@ if "messages" not in st.session_state:
 
 # SIDEBAR - menu lateral
 with st.sidebar:
-    st.title("🛣️ Sofia - Assistente Virtual")
-    st.markdown("Feito para concessões de rodovias no Brasil.")
-    st.markdown("---")
-    st.markdown("Este é um exemplo de frontend estilo ChatGPT usando Streamlit.")
+    st.image(
+        "https://guilhermesaito.com.br/wp-content/uploads/2025/04/sofia_Prancheta-1-copia-4.png",
+        use_container_width=True)
+    st.title("A assistente perfeita para cada time!")
     st.markdown("### Configurações")
     
     # Carrega automaticamente o PDF institucional

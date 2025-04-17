@@ -23,6 +23,9 @@ with st.sidebar:
     )
     st.title("A assistente perfeita para cada time!")
     st.markdown("### Configurações")
+    theme = st.selectbox("🎨 Escolha o tema", ["Claro", "Escuro"])
+    st.session_state["theme"] = theme
+
 
     # Carrega o PDF institucional
     pdf_context = None
@@ -81,15 +84,19 @@ st.write("Digite algo para começar:")
 # Função para renderizar mensagens com estilo WhatsApp
 def render_message(message, role):
     escaped_message = html.escape(message)
+    theme = st.session_state.get("theme", "Claro")
 
-    if role == "user":
-        background_color = "#005c4b"  # Verde WhatsApp (usuário)
-        text_color = "white"
-        align = "right"
+    if theme == "Claro":
+        user_bg = "#25D366"
+        ai_bg = "#ECECEC"
+        text_color = "black"
     else:
-        background_color = "#202c33"  # Cinza escuro para contraste com texto branco
+        user_bg = "#005c4b"
+        ai_bg = "#202c33"
         text_color = "white"
-        align = "left"
+
+    background_color = user_bg if role == "user" else ai_bg
+    align = "right" if role == "user" else "left"
 
     html_code = f"""
     <div style='
@@ -108,8 +115,6 @@ def render_message(message, role):
     </div>
     """
     st.markdown(html_code, unsafe_allow_html=True)
-
-
 
 # Renderiza mensagens anteriores
 for msg in st.session_state.messages:

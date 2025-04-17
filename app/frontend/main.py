@@ -15,6 +15,31 @@ st.set_page_config(page_title="Sofia - Assistente Virtual", layout="wide")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Função de alerta customizado com borda escura e suporte a HTML opcional
+def custom_alert(message, alert_type="info", allow_html=False):
+    colors = {
+        "info": "#3498db",
+        "success": "#2ecc71",
+        "warning": "#f39c12",
+        "error": "#e74c3c"
+    }
+    bg_color = colors.get(alert_type, "#3498db")
+
+    content = html.escape(message) if not allow_html else message
+
+    html_code = f"""
+    <div style='
+        background-color: {bg_color};
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid black;
+        margin-bottom: 10px;
+        font-family: sans-serif;
+    '>{content}</div>
+    """
+    st.markdown(html_code, unsafe_allow_html=True)
+
 # SIDEBAR - menu lateral
 with st.sidebar:
     st.image(
@@ -24,35 +49,41 @@ with st.sidebar:
     st.title("A assistente perfeita para cada time!")
     st.markdown("### Configurações")
 
+    # Tema com estilo toggle
+    selected = st.toggle("🌙 Modo Escuro", value=False, help="Ative para modo escuro")
+    theme = "Escuro" if selected else "Claro"
+    st.session_state["theme"] = theme
+
     # Carrega o PDF institucional
     pdf_context = None
-    csv_context = ""
     try:
         pdf_context = load_default_pdf_context()
-        st.sidebar.success("Contexto do PDF institucional carregado com sucesso!")
+        custom_alert("Contexto do PDF institucional carregado com sucesso!", "success")
     except FileNotFoundError as e:
-        st.sidebar.warning(f"Arquivo PDF não encontrado: {e}")
+        custom_alert(f"Arquivo PDF não encontrado: {e}", "warning")
     except Exception as e:
-        st.sidebar.error(f"Erro ao carregar o contexto do PDF: {e}")
+        custom_alert(f"Erro ao carregar o contexto do PDF: {e}", "error")
 
     # Carrega todos os arquivos CSV da pasta 'data'
+    csv_context = ""
     try:
         csv_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
         csv_files = glob.glob(os.path.join(csv_folder_path, "*.csv"))
-        st.sidebar.info(f"Arquivos CSV encontrados: {csv_files}")
-
         if csv_files:
+            nomes_formatados = "; ".join([os.path.splitext(os.path.basename(f))[0] for f in csv_files])
+            mensagem_csv = f"Arquivos CSV encontrados: {len(csv_files)}<br> Nomes: {nomes_formatados}"
+            custom_alert(mensagem_csv, "info", allow_html=True)
             for csv_file in csv_files:
                 try:
                     content = load_context_from_csv(csv_file, for_langchain=True)
                     csv_context += f"\n\n{content}"
                 except Exception as e:
-                    st.sidebar.warning(f"Erro ao carregar {csv_file}: {e}")
-            st.sidebar.success("Todos os arquivos CSV foram carregados com sucesso!")
+                    custom_alert(f"Erro ao carregar {os.path.basename(csv_file)}: {e}", "warning")
+            custom_alert("Todos os arquivos CSV foram carregados com sucesso!", "success")
         else:
-            st.sidebar.warning("Nenhum arquivo CSV encontrado na pasta 'data'.")
+            custom_alert("Nenhum arquivo CSV encontrado na pasta 'data'.", "warning")
     except Exception as e:
-        st.sidebar.error(f"Erro ao carregar os arquivos CSV: {e}")
+        custom_alert(f"Erro ao carregar os arquivos CSV: {e}", "error")
 
     # Combina os contextos (se ambos forem carregados)
     if pdf_context and csv_context:
@@ -64,32 +95,32 @@ with st.sidebar:
     else:
         combined_context = None
 
-# Limite aproximado para evitar exceder o TPM do Groq (6000 tokens ≈ 5000-6000 caracteres)
-MAX_CONTEXT_CHARS = 5000
-
-# Trunca o contexto se necessário
-if combined_context and len(combined_context) > MAX_CONTEXT_CHARS:
-    combined_context = combined_context[:MAX_CONTEXT_CHARS]
-    st.sidebar.warning("⚠️ O contexto foi truncado para evitar ultrapassar o limite da API.")
+    # Limite de tokens por minuto - evita erro 413 na API
+    MAX_CONTEXT_CHARS = 5000
+    if combined_context and len(combined_context) > MAX_CONTEXT_CHARS:
+        combined_context = combined_context[:MAX_CONTEXT_CHARS]
+        custom_alert("\u26a0\ufe0f O contexto foi truncado para evitar ultrapassar o limite da API.", "warning")
 
 # TÍTULO PRINCIPAL
 st.title("💬 Sofia - Assistente Virtual")
 st.write("Digite algo para começar:")
 
-# (importações e carregamento de contexto mantidos como antes...)
-
 # Função para renderizar mensagens com estilo WhatsApp
 def render_message(message, role):
     escaped_message = html.escape(message)
+    theme = st.session_state.get("theme", "Claro")
 
-    if role == "user":
-        background_color = "#005c4b"  # Verde WhatsApp (usuário)
-        text_color = "white"
-        align = "right"
+    if theme == "Claro":
+        user_bg = "#25D366"
+        ai_bg = "#ECECEC"
+        text_color = "black"
     else:
-        background_color = "#202c33"  # Cinza escuro para contraste com texto branco
+        user_bg = "#005c4b"
+        ai_bg = "#202c33"
         text_color = "white"
-        align = "left"
+
+    background_color = user_bg if role == "user" else ai_bg
+    align = "right" if role == "user" else "left"
 
     html_code = f"""
     <div style='
@@ -108,8 +139,6 @@ def render_message(message, role):
     </div>
     """
     st.markdown(html_code, unsafe_allow_html=True)
-
-
 
 # Renderiza mensagens anteriores
 for msg in st.session_state.messages:

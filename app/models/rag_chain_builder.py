@@ -10,7 +10,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from app.models.context_loader import load_all_csv_contexts, load_all_pdf_contexts
+from app.utils.read_drive import read_drive_folder 
 
 load_dotenv()
 
@@ -74,13 +74,22 @@ Responda à seguinte pergunta de forma clara, objetiva e alinhada aos valores da
 # Limite para controle de uso gratuito
 MAX_TOTAL_CHARS = 5000
 
+
 def load_all_documents() -> list[Document]:
-    pdf_text = load_all_pdf_contexts()
-    csv_text = load_all_csv_contexts(for_langchain=True)
-    full_text = f"{pdf_text}\n{csv_text}"
-    if len(full_text) > MAX_TOTAL_CHARS:
-        full_text = full_text[:MAX_TOTAL_CHARS]
-    return [Document(page_content=full_text)]
+    # Link do arquivo no Google Drive (você pode passar dinamicamente se preferir)
+    drive_link = os.getenv("GOOGLE_DRIVE_FILE_LINK")
+    
+    if not drive_link:
+        raise ValueError("O link do Google Drive não foi definido nas variáveis de ambiente.")
+    
+    drive_text = read_drive_folder(drive_link)
+
+    # Limite de caracteres
+    if len(drive_text) > MAX_TOTAL_CHARS:
+        drive_text = drive_text[:MAX_TOTAL_CHARS]
+
+    return [Document(page_content=drive_text)]
+
 
 def ask_sofia_with_rag(question: str) -> str:
     # Carrega e divide os documentos
@@ -95,9 +104,9 @@ def ask_sofia_with_rag(question: str) -> str:
         index_name=PINECONE_INDEX_NAME,
         namespace="default"
     )
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
     # Cria pipeline RAG moderno
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
     doc_chain = create_stuff_documents_chain(llm, SOFIA_PROMPT)
     rag_chain = create_retrieval_chain(retriever, doc_chain)
 
@@ -105,18 +114,9 @@ def ask_sofia_with_rag(question: str) -> str:
     response = rag_chain.invoke({"input": question})
     return response.get("answer", "Sem resposta.")
 
-# Execução direta no terminal
 if __name__ == "__main__":
-    print("🤖 Sofia com RAG iniciada (modo terminal)")
-    print("Digite sua pergunta ou 'sair' para encerrar.\n")
-
-    while True:
-        question = input("❓ Você: ")
-        if question.lower() in ["sair", "exit"]:
-            print("👋 Encerrando Sofia. Até a próxima!")
-            break
-        try:
-            answer = ask_sofia_with_rag(question)
-            print(f"💡 Sofia: {answer}\n")
-        except Exception as e:
-            print(f"❌ Erro: {e}\n")
+    print("🔍 Teste direto do RAG:")
+    question = input("❓ Faça uma pergunta para a SofiA: ")
+    resposta = ask_sofia_with_rag(question)
+    print("\n💡 Resposta da SofiA:\n")
+    print(resposta)

@@ -1,4 +1,3 @@
-```markdown 
 # 🤖 Sofia - Assistente Virtual com RAG
 
 Sofia é uma assistente virtual desenvolvida com foco em suporte interno para equipes comerciais e operacionais. Utiliza **RAG (Retrieval-Augmented Generation)** com integração à **GroqAI (futuramente OpenAI)**, leitura de arquivos `.csv` e `.pdf`, e uma interface estilo WhatsApp no **Streamlit** com alternância de tema claro/escuro.
@@ -15,6 +14,7 @@ Sofia é uma assistente virtual desenvolvida com foco em suporte interno para eq
 - Estrutura modular separada em `frontend`, `models` e `data`  
 - Interface com histórico de mensagens persistente por sessão  
 - Compatível com `GroqAI`, e adaptável para `OpenAI`  
+- Versão RAG com arquitetura moderna (`langchain.chains.retrieval`) via `main_rag.py`
 
 ---
 
@@ -22,11 +22,21 @@ Sofia é uma assistente virtual desenvolvida com foco em suporte interno para eq
 
 1. Clone o repositório  
 2. Instale as dependências  
-3. Execute o app
+3. Execute o app desejado
 
+### Interface tradicional com Streamlit:
 ```bash
-pip install -r requirements.txt
 python run_frontend.py
+```
+
+### Interface RAG com contexto em Pinecone:
+```bash
+python run_rag.py
+```
+
+### Teste rápido no terminal (modo RAG):
+```bash
+python app/models/rag_chain_builder.py
 ```
 
 ---
@@ -41,9 +51,11 @@ Atualmente configurado para uso com **GroqAI**. Para utilizar com **OpenAI**, su
 
 - **Python 3.11+**  
 - **Streamlit**  
-- **LangChain**  
+- **LangChain (v0.1+ com LCEL)**  
 - **Groq / OpenAI**  
-- **PyPDF2**, **Pandas**, **Glob**, **HTML Escape**  
+- **Cohere Embeddings**  
+- **Pinecone (via langchain_pinecone)**  
+- **PyPDF2**, **Pandas**, **Glob**, **HTML Escape**
 
 ---
 
@@ -53,6 +65,7 @@ Atualmente configurado para uso com **GroqAI**. Para utilizar com **OpenAI**, su
 - Resumo automático de PDF institucional  
 - Upload de arquivos diretamente na interface  
 - Melhorias visuais e responsividade  
+- Integração com APIs externas (Telegram, WhatsApp)
 
 ---
 
@@ -84,6 +97,5 @@ Sofia: De acordo com os dados disponíveis, o telefone do responsável financeir
 
 ---
 
-## 🧾 Licença
 
-Este projeto é de uso interno e ainda não possui uma licença pública definida.
+

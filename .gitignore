@@ -5,3 +5,4 @@ app/api/__pycache__/
 app/models/__pycache__/
 app/services/__pycache__/
 app/utils/__pycache__/
+app/rag_chain/__pycache__/

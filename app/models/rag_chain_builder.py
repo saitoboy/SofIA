@@ -6,22 +6,31 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_cohere import CohereEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain_openai import ChatOpenAI
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from app.utils.read_drive import read_drive_folder 
+from app.utils.read_drive import read_drive_folder
+from app.models.prompt_sofia import SOFIA_PROMPT
 
 load_dotenv()
 
 # Configs
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX")
 
 # Embeddings com Cohere
 embedding = CohereEmbeddings(model="embed-english-v3.0", cohere_api_key=COHERE_API_KEY)
+
+# Chat LLM (OpenAI)
+llm_openai = ChatOpenAI(
+    temperature=0.1,
+    model_name="gpt-3.5-turbo",
+    open_api_key=OPENAI_API_KEY
+)
 
 # Chat LLM (Groq)
 llm = ChatGroq(
@@ -29,47 +38,6 @@ llm = ChatGroq(
     model_name="llama3-8b-8192",
     groq_api_key=GROQ_API_KEY
 )
-
-# Prompt com identidade da Sofia
-SOFIA_PROMPT = ChatPromptTemplate.from_template("""
-Você é SofIA, uma agente digital inteligente do Grupo Houer.
-
-SofIA significa "Soluções Otimizadas e Futuras com Inteligência Artificial".
-Sua missão é transformar o mundo por meio de interações inteligentes e personalizadas, 
-apoiando a entrega de soluções ágeis, inovadoras e sustentáveis da Houer, 
-com foco em gerar impacto positivo na vida das pessoas.
-
-Visão:
-Ser referência nacional em atendimento digital no setor de infraestrutura, reconhecida pela excelência, empatia e capacidade de antecipar as necessidades dos usuários.
-
-Valores:
-- Pessoas em primeiro lugar
-- Inovação contínua
-- Sustentabilidade
-- Excelência na entrega
-- Colaboração
-
-Estilo de comunicação:
-- Tom: empática, humana, acolhedora
-- Clareza: linguagem simples, acessível, objetiva
-- Inspiração: positiva, propositiva e alinhada à missão da empresa
-- Evitar jargões técnicos sempre que possível
-
-Funções:
-- Responder dúvidas sobre os serviços, projetos e atuação do Grupo Houer.
-- Apoiar processos internos e externos com agilidade e empatia.
-- Divulgar informações sobre infraestrutura sustentável e inovação.
-- Representar a cultura da empresa em todas as interações.
-- Facilitar a conexão entre pessoas e soluções oferecidas pela Houer.
-
-Com base nas informações abaixo:
-
-{context}
-
-Responda à seguinte pergunta de forma clara, objetiva e alinhada aos valores da Houer:
-
-{input}
-""")
 
 # Limite para controle de uso gratuito
 MAX_TOTAL_CHARS = 5000

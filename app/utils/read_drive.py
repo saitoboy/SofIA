@@ -8,7 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 
 # Caminho para o JSON da chave de serviço
 SERVICE_ACCOUNT_FILE = 'app/utils/credenciais_google.json'
-
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
 def extract_folder_id(folder_link):

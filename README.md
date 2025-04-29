@@ -49,10 +49,22 @@ python main_telegram.py
 
 ## 🔐 Configurações de API necessárias
 
-- **Groq API Key** (GROQ_API_KEY)
-- **Cohere API Key** (COHERE_API_KEY)
-- **Pinecone API Key + Host** (PINECONE_API_KEY, PINECONE_INDEX)
-- **Telegram Bot Token** (TELEGRAM_API)
+# APIs de LLM
+- GROQ_API_KEY =sua_chave
+- OPENAI_API_KEY =sua_chave
+
+# API Embeddings
+- COHERE_API_KEY= sua_chave
+  
+# API Pinecone
+- PINECONE_API_KEY= sua_chave
+- PINECONE_INDEX= nome_do_seu_indexador
+
+# Integração com Google Drive
+- GOOGLE_DRIVE_FILE_LINK=https://drive.google.com/drive/u/1/folders/1L4D0a6ULwGWtJGFgHbyRoXiZiIAFwGaK
+
+# Telegram Bot Token
+- TELEGRAM_API = chave_do_seu_BotFather
 
 Todas as variáveis devem estar no seu `.env` na raiz do projeto.
 

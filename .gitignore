@@ -6,3 +6,14 @@ app/models/__pycache__/
 app/services/__pycache__/
 app/utils/__pycache__/
 app/rag_chain/__pycache__/
+
+
+# Dados locais /data
+app/data/dados_inep_parte1.csv
+app/data/dados_inep_parte2.csv
+app/data/escolas_mun.csv
+app/data/licitacao_rodovia_mun.csv
+app/data/pib_mun.csv
+app/data/populacao_mun.csv
+app/data/qdd-muriae.pdf
+app/data/rodovias_br.csv

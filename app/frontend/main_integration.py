@@ -54,52 +54,66 @@ with st.sidebar:
     theme = "Escuro" if selected else "Claro"
     st.session_state["theme"] = theme
 
-    # Carrega o PDF institucional
-    pdf_context = None
-    try:
-        pdf_context = load_default_pdf_context()
-        custom_alert("Contexto do PDF institucional carregado com sucesso!", "success")
-    except FileNotFoundError as e:
-        custom_alert(f"Arquivo PDF não encontrado: {e}", "warning")
-    except Exception as e:
-        custom_alert(f"Erro ao carregar o contexto do PDF: {e}", "error")
+    # Inicializa lista de mensagens se não existir
+    if "load_messages" not in st.session_state:
+        st.session_state.load_messages = []
 
-    # Carrega todos os arquivos CSV da pasta 'data'
-    csv_context = ""
-    try:
-        csv_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
-        csv_files = glob.glob(os.path.join(csv_folder_path, "*.csv"))
-        if csv_files:
-            nomes_formatados = "; ".join([os.path.splitext(os.path.basename(f))[0] for f in csv_files])
-            mensagem_csv = f"Arquivos CSV encontrados: {len(csv_files)}<br> Nomes: {nomes_formatados}"
-            custom_alert(mensagem_csv, "info", allow_html=True)
-            for csv_file in csv_files:
-                try:
-                    content = load_context_from_csv(csv_file, for_langchain=True)
-                    csv_context += f"\n\n{content}"
-                except Exception as e:
-                    custom_alert(f"Erro ao carregar {os.path.basename(csv_file)}: {e}", "warning")
-            custom_alert("Todos os arquivos CSV foram carregados com sucesso!", "success")
+    # Função que registra alertas e também salva na sessão
+    def persistent_alert(message, alert_type="info", allow_html=False):
+        custom_alert(message, alert_type, allow_html)
+        st.session_state.load_messages.append((message, alert_type, allow_html))
+
+    # Carrega contexto apenas uma vez
+    if "combined_context" not in st.session_state:
+        pdf_context = None
+        csv_context = ""
+
+        try:
+            pdf_context = load_default_pdf_context()
+            persistent_alert("Contexto do PDF institucional carregado com sucesso!", "success")
+        except FileNotFoundError as e:
+            persistent_alert(f"Arquivo PDF não encontrado: {e}", "warning")
+        except Exception as e:
+            persistent_alert(f"Erro ao carregar o contexto do PDF: {e}", "error")
+
+        try:
+            csv_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+            csv_files = glob.glob(os.path.join(csv_folder_path, "*.csv"))
+            if csv_files:
+                nomes_formatados = "; ".join([os.path.splitext(os.path.basename(f))[0] for f in csv_files])
+                mensagem_csv = f"Arquivos CSV encontrados: {len(csv_files)}<br> Nomes: {nomes_formatados}"
+                persistent_alert(mensagem_csv, "info", allow_html=True)
+                for csv_file in csv_files:
+                    try:
+                        content = load_context_from_csv(csv_file, for_langchain=True)
+                        csv_context += f"\n\n{content}"
+                    except Exception as e:
+                        persistent_alert(f"Erro ao carregar {os.path.basename(csv_file)}: {e}", "warning")
+                persistent_alert("Todos os arquivos CSV foram carregados com sucesso!", "success")
+            else:
+                persistent_alert("Nenhum arquivo CSV encontrado na pasta 'data'.", "warning")
+        except Exception as e:
+            persistent_alert(f"Erro ao carregar os arquivos CSV: {e}", "error")
+
+        if pdf_context and csv_context:
+            combined_context = f"{pdf_context}\n\n{csv_context}"
+        elif pdf_context:
+            combined_context = pdf_context
+        elif csv_context:
+            combined_context = csv_context
         else:
-            custom_alert("Nenhum arquivo CSV encontrado na pasta 'data'.", "warning")
-    except Exception as e:
-        custom_alert(f"Erro ao carregar os arquivos CSV: {e}", "error")
+            combined_context = None
 
-    # Combina os contextos (se ambos forem carregados)
-    if pdf_context and csv_context:
-        combined_context = f"{pdf_context}\n\n{csv_context}"
-    elif pdf_context:
-        combined_context = pdf_context
-    elif csv_context:
-        combined_context = csv_context
+        MAX_CONTEXT_CHARS = 5000
+        if combined_context and len(combined_context) > MAX_CONTEXT_CHARS:
+            combined_context = combined_context[:MAX_CONTEXT_CHARS]
+            persistent_alert("\u26a0\ufe0f O contexto foi truncado para evitar ultrapassar o limite da API.", "warning")
+
+        st.session_state["combined_context"] = combined_context
     else:
-        combined_context = None
-
-    # Limite de tokens por minuto - evita erro 413 na API
-    MAX_CONTEXT_CHARS = 5000
-    if combined_context and len(combined_context) > MAX_CONTEXT_CHARS:
-        combined_context = combined_context[:MAX_CONTEXT_CHARS]
-        custom_alert("\u26a0\ufe0f O contexto foi truncado para evitar ultrapassar o limite da API.", "warning")
+         # Apenas reapresenta os alertas anteriores (sem adicionar novos)
+        for msg, tipo, html_enabled in st.session_state.load_messages:
+            custom_alert(msg, tipo, html_enabled)
 
 # TÍTULO PRINCIPAL
 st.title("💬 Sofia - Assistente Virtual")
@@ -145,7 +159,7 @@ for msg in st.session_state.messages:
     render_message(msg["content"], msg["role"])
 
 # Entrada do usuário
-if combined_context:
+if st.session_state.get("combined_context"):
     prompt = st.chat_input("Escreva sua mensagem...")
 
     if prompt:
@@ -154,7 +168,7 @@ if combined_context:
 
         with st.spinner("Sofia está pensando..."):
             try:
-                response = ask_groq(combined_context, prompt)
+                response = ask_groq(st.session_state["combined_context"], prompt)
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 render_message(response, "assistant")
             except Exception as e:

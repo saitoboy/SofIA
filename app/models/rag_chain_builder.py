@@ -39,12 +39,17 @@ llm = ChatGroq(
     groq_api_key=GROQ_API_KEY
 )
 
-# Limite para controle de uso gratuito
-MAX_TOTAL_CHARS = 5000
 
+def load_all_documents(max_tokens: int | None = None) -> list[Document]:
+    """
+    Lê todos os arquivos .pdf e .csv do Google Drive e retorna uma lista com 1 Document.
 
-def load_all_documents() -> list[Document]:
-    # Link do arquivo no Google Drive (você pode passar dinamicamente se preferir)
+    Args:
+        max_tokens (int | None): Limite de caracteres a serem lidos. Se None, lê tudo.
+
+    Returns:
+        list[Document]: Lista com o conteúdo consolidado em um único Document.
+    """
     drive_link = os.getenv("GOOGLE_DRIVE_FILE_LINK")
     
     if not drive_link:
@@ -52,12 +57,10 @@ def load_all_documents() -> list[Document]:
     
     drive_text = read_drive_folder(drive_link)
 
-    # Limite de caracteres
-    if len(drive_text) > MAX_TOTAL_CHARS:
-        drive_text = drive_text[:MAX_TOTAL_CHARS]
+    if max_tokens is not None and len(drive_text) > max_tokens:
+        drive_text = drive_text[:max_tokens]
 
     return [Document(page_content=drive_text)]
-
 
 def ask_sofia_with_rag(question: str) -> str:
     # Carrega e divide os documentos

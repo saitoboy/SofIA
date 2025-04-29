@@ -43,7 +43,8 @@ Configure seu token no `.env` e execute:
 ```bash
 python main_telegram.py
 ```
-
+> **Acesse o Bot da Sofia agora mesmo pelo Telegram:**  
+> 👉 [@sofiahouer_bot](https://web.telegram.org/k/#@sofiahouer_bot)
 ---
 
 ## 🔐 Configurações de API necessárias

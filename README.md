@@ -1,101 +1,120 @@
-# 🤖 Sofia - Assistente Virtual com RAG
+# 🤖 SofiA - Assistente Virtual com RAG + Telegram
 
-Sofia é uma assistente virtual desenvolvida com foco em suporte interno para equipes comerciais e operacionais. Utiliza **RAG (Retrieval-Augmented Generation)** com integração à **GroqAI (futuramente OpenAI)**, leitura de arquivos `.csv` e `.pdf`, e uma interface estilo WhatsApp no **Streamlit** com alternância de tema claro/escuro.
+SofiA é uma assistente virtual desenvolvida para suporte interno de equipes comerciais e operacionais, utilizando **RAG (Retrieval-Augmented Generation)** com integração a **GroqAI** (compatível também com **OpenAI**). Ela é capaz de ler documentos `.csv` e `.pdf`, realizar buscas inteligentes em base de dados (Pinecone) e atender tanto via **interface Streamlit** quanto via **Telegram Bot**.
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades principais
 
-- Leitura de múltiplos arquivos `.csv` e `.pdf` com resumo de contexto automático  
-- Renderização de mensagens estilo chat (inspirado no WhatsApp)  
-- Tema Claro/Escuro com comutador interativo na interface  
-- Alerta customizado com borda fina e cores distintas por tipo (sucesso, erro, info, etc.)  
-- Controle de tokens para evitar erros de contexto muito extenso  
-- Estrutura modular separada em `frontend`, `models` e `data`  
-- Interface com histórico de mensagens persistente por sessão  
-- Compatível com `GroqAI`, e adaptável para `OpenAI`  
-- Versão RAG com arquitetura moderna (`langchain.chains.retrieval`) via `main_rag.py`
+- ✅ Leitura de múltiplos `.csv`, `.pdf` e arquivos do Google Drive
+- ✅ Integração RAG moderna (`create_retrieval_chain`) com LangChain
+- ✅ Busca semântica otimizada por embeddings da Cohere
+- ✅ Persistência de contexto inteligente em Pinecone
+- ✅ Interface no **Streamlit** estilo WhatsApp, com tema claro/escuro
+- ✅ Integração via **Telegram Bot** oficial
+- ✅ Controle automático de limites de tokens (respeitando planos gratuitos)
 
 ---
 
 ## ⚙️ Como executar o projeto
 
-1. Clone o repositório  
-2. Instale as dependências  
-3. Execute o app desejado
+Clone o repositório e instale as dependências:
 
-### Interface tradicional com Streamlit:
 ```bash
-python run_frontend.py
+pip install -r requirements.txt
 ```
 
-### Interface RAG com contexto em Pinecone:
+### 1. Rodar SofiA no navegador (modo Streamlit, pasta local)
+
 ```bash
-python run_rag.py
+python run_integration.py
 ```
 
-### Teste rápido no terminal (modo RAG):
+### 2. Rodar SofiA no terminal (teste rápido)
+
 ```bash
-python app/models/rag_chain_builder.py
+python app/rag_chain/rag_chain.py
+```
+
+### 3. Rodar SofiA no Telegram Bot
+
+Configure seu token no `.env` e execute:
+
+```bash
+python main_telegram.py
 ```
 
 ---
 
-## 🔐 Chaves de API
+## 🔐 Configurações de API necessárias
 
-Atualmente configurado para uso com **GroqAI**. Para utilizar com **OpenAI**, substitua o método de chamada e configure sua `API_KEY` no arquivo `.env` ou diretamente na função `ask_groq`.
+- **Groq API Key** (GROQ_API_KEY)
+- **Cohere API Key** (COHERE_API_KEY)
+- **Pinecone API Key + Host** (PINECONE_API_KEY, PINECONE_INDEX)
+- **Telegram Bot Token** (TELEGRAM_API)
+
+Todas as variáveis devem estar no seu `.env` na raiz do projeto.
 
 ---
 
 ## 💡 Tecnologias utilizadas
 
-- **Python 3.11+**  
-- **Streamlit**  
-- **LangChain (v0.1+ com LCEL)**  
-- **Groq / OpenAI**  
-- **Cohere Embeddings**  
-- **Pinecone (via langchain_pinecone)**  
-- **PyPDF2**, **Pandas**, **Glob**, **HTML Escape**
+- **Python 3.11+**
+- **Streamlit**
+- **Telegram Bot (python-telegram-bot)**
+- **LangChain (v0.1+ - LCEL)**
+- **Groq / OpenAI**
+- **Cohere Embeddings**
+- **Pinecone Vector Database**
+- **Google Drive API**
+- **Pandas**, **PyPDF2**, **Glob**, **dotenv**
 
 ---
 
-## 🛠️ Em desenvolvimento
+## 🛠️ Funcionalidades futuras
 
-- Histórico persistente além da sessão  
-- Resumo automático de PDF institucional  
-- Upload de arquivos diretamente na interface  
-- Melhorias visuais e responsividade  
-- Integração com APIs externas (Telegram, WhatsApp)
+- Melhorias visuais no Streamlit (componentes nativos para upload)
+- Integração com WhatsApp via API (Cloud API / Z-API)
+- Armazenamento de histórico de conversa em banco de dados
+- Logs de conversação para análises internas
+- Sistema de usuários autenticados para gestão de permissões
 
 ---
 
 ## 📄 Pull Requests
 
-Este projeto possui um [template padrão](.github/pull_request_template.md) para facilitar revisões e padronizar entregas.
+Este projeto possui um [template padrão de Pull Request](.github/pull_request_template.md) para facilitar revisões e padronizar entregas.
 
 ---
 
-## 👨‍💻 Contribuição
+## 👨‍💻 Como contribuir
 
-Sinta-se à vontade para abrir issues, sugerir melhorias ou contribuir com código.
+- Faça um fork do projeto
+- Crie uma branch com sua feature (`git checkout -b feature/sua-feature`)
+- Commit suas alterações (`git commit -m 'feat: Minha nova feature'`)
+- Faça o push para o seu fork (`git push origin feature/sua-feature`)
+- Abra um Pull Request
 
 ---
 
 ## 📌 Observações
 
-- A Sofia não é voltada ao atendimento externo ao cliente neste projeto.  
-- O foco principal é servir como um copiloto interno para equipes específicas.  
+- A SofiA é destinada **exclusivamente para uso interno** no Grupo Houer.
+- Sua comunicação é empática, positiva e alinhada aos valores da empresa.
+- Não substitui o atendimento humano em situações críticas ou sensíveis.
 
 ---
 
-## 🧠 Exemplo de uso
+## 🧠 Exemplo de fluxo de uso
 
 ```text
-Usuário: Qual o telefone do responsável pelo setor financeiro?
-Sofia: De acordo com os dados disponíveis, o telefone do responsável financeiro é (11) 99999-9999.
+Usuário: Quais são os municípios que temos acesso em Rondônia?
+Sofia: De acordo com os dados disponíveis, temos acesso aos municípios: Cerejeiras, Colorado do Oeste, Corumbiara, Costa Marques...
+
+Usuário: Qual a CAPAG do município de Niterói (RJ)?
+Sofia: Para Niterói (RJ), a classificação CAPAG é A, com base nos indicadores analisados em 2023.
 ```
 
 ---
 
-
-
+> Projeto interno para otimização de atendimento e apoio comercial 🌟
